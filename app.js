@@ -67,14 +67,13 @@ app.get("/", function(req, res, next){
     request.get(callURL, function (error, response, body) {
         if(error) return next(error);
         
-        console.log("Body:");
-		console.log(body.observation);
+        body = JSON.parse(body);
 
         //day_ind is "D" for day, "N" for night
         if (body.observation.day_ind === "D") {
-            res.sendFile(__dirname + "public/" + region + "-day.jpg");
+            res.sendFile(__dirname + "/public/images/" + region + "-day.jpg");
         } else if (body.observation.day_ind === "N") {
-            res.sendFile(__dirname + "public/" + region + "-night.jpg");
+            res.sendFile(__dirname + "/public/images/" + region + "-night.jpg");
         } else res.send("Neither day nor night!?");
     });
 });
