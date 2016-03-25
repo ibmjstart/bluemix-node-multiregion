@@ -19,7 +19,7 @@ var cfenv = require('cfenv');
 
 // get the app environment from Cloud Foundry
 var appEnv = cfenv.getAppEnv();
-var weather_base_url = appEnv.getServiceURL("Insights for Weather-zv");
+var weather_base_url = appEnv.getServiceURL("multi-region_weatherinsights");
 
 // create a new express server
 var app = express();
