@@ -44,7 +44,7 @@ var geocode = GEOCODES[region];
 var callURL = weather_base_url + "api/weather/v2/observations/current" +
       "?geocode=" + geocode + "&language=en-US&units=m";
       
-app.get("/", function(req, res, next){
+app.get("/background-image.jpg", function(req, res, next){
     console.log("got a request");
     request.get(callURL, function (error, response, body) {
         if(error) return next(error);
