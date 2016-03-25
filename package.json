@@ -7,7 +7,13 @@
 	},
 	"dependencies": {
 		"express": "4.13.x",
+<<<<<<< Upstream, based on 73d2bfcc1b65e4630a56c063ff5f4bf044d67161
 		"cfenv": "1.0.x"
+=======
+		"cfenv": "1.0.x",
+		"request": "2.x",
+		"suncalc": "1.7.x"
+>>>>>>> 501e7a0 basic outline of the app (not working)
 	},
 	"repository": {},
 	"engines": {
