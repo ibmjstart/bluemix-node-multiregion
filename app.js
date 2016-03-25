@@ -29,6 +29,10 @@ var REGIONS = {
     "ibm:yp:eu-gb": "london",
     "ibm:yp:au-syd": "sydney",
 };
+
+console.log("REGION:");
+console.log(process.env.BLUEMIX_REGION);
+
 var region = REGIONS[process.env.BLUEMIX_REGION];
 
 var GEOCODES = {
