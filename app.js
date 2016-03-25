@@ -4,10 +4,12 @@
 // node.js starter application for Bluemix
 //------------------------------------------------------------------------------
 
+
 // This application uses express as its web server
 // for more info, see: http://expressjs.com
 var express = require('express');
 
+/*
 // cfenv provides access to your Cloud Foundry environment
 // for more info, see: https://www.npmjs.com/package/cfenv
 var cfenv = require('cfenv');
@@ -27,9 +29,11 @@ app.listen(appEnv.port, '0.0.0.0', function() {
 	// print a message when the server starts listening
   console.log("server starting on " + appEnv.url);
 });
+*/
 
 var request = require('request');
-var SunCalc = require('suncalc');
+
+//var SunCalc = require('suncalc');
 
 // cfenv provides access to your Cloud Foundry environment
 // for more info, see: https://www.npmjs.com/package/cfenv
@@ -37,7 +41,7 @@ var cfenv = require('cfenv');
 
 // get the app environment from Cloud Foundry
 var appEnv = cfenv.getAppEnv();
-var weather_base_url = appEnv.getServiceURL("Insights for Weather-kd");
+var weather_base_url = appEnv.getServiceURL("Insights for Weather-zv");
 
 // create a new express server
 var app = express();
@@ -63,6 +67,9 @@ app.get("/", function(req, res, next){
     request.get(callURL, function (error, response, body) {
         if(error) return next(error);
         
+        console.log("Body:");
+		console.log(body.observation);
+
         //day_ind is "D" for day, "N" for night
         if (body.observation.day_ind === "D") {
             res.sendFile(__dirname + "public/" + region + "-day.jpg");
@@ -85,9 +92,3 @@ app.listen(appEnv.port, '0.0.0.0', function() {
     console.log("weather_base_url: " + weather_base_url);
     console.log("callURL: " + callURL);
 });
-
-function dayOrNight(callback) {
-    
-    
-    
-}
