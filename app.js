@@ -20,6 +20,9 @@ var cfenv = require('cfenv');
 // get the app environment from Cloud Foundry
 var appEnv = cfenv.getAppEnv();
 var weather_base_url = appEnv.getServiceURL("multi-region_weatherinsights");
+var cloudant_creds = appEnv.getServiceCreds("multi-region_cloudant");
+
+console.log(cloudant_creds);
 
 // create a new express server
 var app = express();
@@ -34,9 +37,6 @@ var REGIONS = {
     "ibm:yp:au-syd": "sydney",
 };
 
-console.log("REGION:");
-console.log(process.env.BLUEMIX_REGION);
-
 var region = REGIONS[process.env.BLUEMIX_REGION];
 
 var GEOCODES = {
@@ -47,6 +47,7 @@ var GEOCODES = {
 var geocode = GEOCODES[region];
 var callURL = weather_base_url + "api/weather/v2/observations/current" +
       "?geocode=" + geocode + "&language=en-US&units=m";
+
       
 app.get("/background-image.jpg", function(req, res, next){
     console.log("got a request");
@@ -57,14 +58,37 @@ app.get("/background-image.jpg", function(req, res, next){
 
         //day_ind is "D" for day, "N" for night
         if (body.observation.day_ind === "D") {
-            res.sendFile(__dirname + "/public/images/" + region + "-day.jpg");
+            res.sendFile(__dirname + "/views/public/images/" + region + "-day.jpg");
         } else if (body.observation.day_ind === "N") {
-            res.sendFile(__dirname + "/public/images/" + region + "-night.jpg");
+            res.sendFile(__dirname + "/views/public/images/" + region + "-night.jpg");
         } else res.send("Neither day nor night!?");
     });
 });
 
+/*
+var background_image = '';
+request.get(callURL, function (error, response, body) {
+        //if(error) return next(error);
+        
+        body = JSON.parse(body);
 
+        //day_ind is "D" for day, "N" for night
+    	//defaults to day if not 'N'
+        if (body.observation.day_ind === "N") {
+            background_image = __dirname + "/views/public/images/" + region + "-night.jpg";
+        } else {
+        	background_image = __dirname + "/views/public/images/" + region + "-day.jpg";
+   		}
+
+});
+ */
+
+var cards = [{region: "Dallas", time:"now"}, {region: "Sydney", time:"yesterday"}, {region: "London", time:"March 21, 2016"}, {region: "Dallas", time:"now"}];
+
+app.get('/', function(req,res){
+	//res.locals = {background-image: ''}
+	res.render('template', {cards: cards});                                                  
+});
 
 // serve the files out of ./public as our main files
 app.use(express.static(__dirname + '/views/public'));
