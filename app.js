@@ -23,6 +23,10 @@ var weather_base_url = appEnv.getServiceURL("multi-region_weatherinsights");
 
 // create a new express server
 var app = express();
+app.set('view engine', 'html');
+app.set('layout', 'layout');
+app.enable('view cache');
+app.engine('html', require('hogan-express'));
 
 var REGIONS = {
     "ibm:yp:us-south": "dallas",
@@ -60,8 +64,10 @@ app.get("/background-image.jpg", function(req, res, next){
     });
 });
 
+
+
 // serve the files out of ./public as our main files
-app.use(express.static(__dirname + '/public'));
+app.use(express.static(__dirname + '/views/public'));
 
 // start server on the specified port and binding host
 app.listen(appEnv.port, '0.0.0.0', function() {

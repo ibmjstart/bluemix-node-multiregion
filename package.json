@@ -9,7 +9,7 @@
 		"express": "4.13.x",
 		"cfenv": "1.0.x",
 		"request": "2.x",
-		"suncalc": "1.7.x"
+		"hogan-express": "0.5.x"
 	},
 	"repository": {},
 	"engines": {
