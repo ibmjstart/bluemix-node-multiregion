@@ -11,18 +11,32 @@ var express = require('express');
 
 var request = require('request');
 
-//var SunCalc = require('suncalc');
-
 // cfenv provides access to your Cloud Foundry environment
 // for more info, see: https://www.npmjs.com/package/cfenv
 var cfenv = require('cfenv');
 
 // get the app environment from Cloud Foundry
 var appEnv = cfenv.getAppEnv();
+
 var weather_base_url = appEnv.getServiceURL("multi-region_weatherinsights");
 var cloudant_creds = appEnv.getServiceCreds("multi-region_cloudant");
 
-console.log(cloudant_creds);
+var Cloudant = require('cloudant');
+var cloudant_client = Cloudant({account:cloudant_creds.username, password:cloudant_creds.password});
+var db = cloudant_client.db.use('my_sample_db');
+
+db.insert({ crazy: true }, {region: "Dallas", time: "March 28, 2016"}, function(err, body) {
+  if (!err)
+    console.log(body);
+});
+
+db.list(function(err, body) {
+  if (!err) {
+    body.rows.forEach(function(doc) {
+      console.log(doc);
+    });
+  }
+});
 
 // create a new express server
 var app = express();
