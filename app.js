@@ -92,13 +92,14 @@ app.get("/background-image.jpg", function(req, res, next){
 });
 
 
-var cards = [{region: "Dallas", time:"now"}, {region: "Sydney", time:"yesterday"}, {region: "London", time:"March 21, 2016"}, {region: "Dallas", time:"now"}];
+// var cards = [{region: "Dallas", time:"now"}, {region: "Sydney", time:"yesterday"}, {region: "London", time:"March 21, 2016"}, {region: "Dallas", time:"now"}];
 
 app.get('/', function(req, res){
 	var promise = getCards();
-	promise.then(function(cards){console.log(cards);});
-	res.locals = {region: region};
-	res.render('template', {cards: cards});                                                  
+		promise.then(function(cards){
+		res.locals = {region: region};
+		res.render('template', {cards: cards});  
+	});
 });
 
 app.post('/', function(req, res) {
