@@ -26,16 +26,20 @@ var cloudant_client = Cloudant({account:cloudant_creds.username, password:clouda
 var db = cloudant_client.db.use('my_sample_db');
 
 function getCards(){
+	var test = [];
 	db.list(function(err, body) {
 	  if (!err) {
 	    body.rows.forEach(function(doc) {
-	      console.log(doc);
+	      db.get(doc.id, function(err, body){test.push(body);});
 	    });
 	  }
-	});	
+	});
+	return test;
 }
 
-function addCard(){
+console.log(getCards());
+
+for (var i = 0; i < 10; i++) {
 	db.insert({region: "Dallas", time: "March 28, 2016"}, function(err, body) {
 	  if (!err)
 	    console.log(body);
