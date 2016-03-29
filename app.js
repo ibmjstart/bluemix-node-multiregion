@@ -79,6 +79,12 @@ app.get("/background-image.jpg", function(req, res, next){
     });
 });
 
+app.post('/', function(req, res) {
+	console.log("post");
+	//names.push({name: 'Preston'});
+	//res.render('template', {names: names});
+});
+
 /*
 var background_image = '';
 request.get(callURL, function (error, response, body) {

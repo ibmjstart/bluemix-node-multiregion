@@ -58,3 +58,17 @@ td {
 	height: 120px;
 }  
 
+.create-button {                                                                                   
+	background-color: #ECF0F1;
+	height: 100px;
+	width: 100px;
+	text-align: center;
+	border-radius: 20px;
+	font-size: xx-large;
+}
+
+.create-div {
+	position: fixed;
+	bottom: 10px;
+	left: 10px;
+}
