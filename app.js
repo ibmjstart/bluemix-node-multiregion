@@ -97,16 +97,19 @@ app.get("/background-image.jpg", function(req, res, next){
 app.get('/', function(req, res){
 	var promise = getCards();
 		promise.then(function(cards){
-		res.locals = {region: region};
-		res.render('template', {cards: cards});  
-	});
+				res.locals = {region: region};
+				res.render('template', {cards: cards});  
+			});
 });
 
-app.post('/', function(req, res) {
+app.post('/add', function(req, res) {
 	var date = new Date();                                                                             
 	db.insert({region: region, time: date.toUTCString()}, function(err, body) {
-	  if (!err)
-	    console.log(body);
+		if (err) {
+	  		console.log("Error on add");
+	  		console.log(err);
+	  	}
+		res.redirect('back');
 	});
 });
 
