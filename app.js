@@ -80,8 +80,8 @@ app.get("/background-image.jpg", function(req, res, next){
 });
 
 app.post('/', function(req, res) {
-	console.log("post");
-	db.insert({region: region, time: "March 28, 2016"}, function(err, body) {
+	var date = new Date();                                                                             
+	db.insert({region: region, time: date.toUTCString()}, function(err, body) {
 	  if (!err)
 	    console.log(body);
 	});
