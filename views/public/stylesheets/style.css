@@ -17,6 +17,11 @@ td {
     padding: 5px;
 }
 
+.welcome-message {
+	text-align: center;
+	font-size: 60px;
+}
+
 .container {
 	display: flex;
 	flex-flow: row wrap;

@@ -25,18 +25,22 @@ var Cloudant = require('cloudant');
 var cloudant_client = Cloudant({account:cloudant_creds.username, password:cloudant_creds.password});
 var db = cloudant_client.db.use('my_sample_db');
 
-db.insert({ crazy: true }, {region: "Dallas", time: "March 28, 2016"}, function(err, body) {
-  if (!err)
-    console.log(body);
-});
+function getCards(){
+	db.list(function(err, body) {
+	  if (!err) {
+	    body.rows.forEach(function(doc) {
+	      console.log(doc);
+	    });
+	  }
+	});	
+}
 
-db.list(function(err, body) {
-  if (!err) {
-    body.rows.forEach(function(doc) {
-      console.log(doc);
-    });
-  }
-});
+function addCard(){
+	db.insert({region: "Dallas", time: "March 28, 2016"}, function(err, body) {
+	  if (!err)
+	    console.log(body);
+	});
+}
 
 // create a new express server
 var app = express();
@@ -46,17 +50,18 @@ app.enable('view cache');
 app.engine('html', require('hogan-express'));
 
 var REGIONS = {
-    "ibm:yp:us-south": "dallas",
-    "ibm:yp:eu-gb": "london",
-    "ibm:yp:au-syd": "sydney",
+    "ibm:yp:us-south": "Dallas",
+    "ibm:yp:eu-gb": "London",
+    "ibm:yp:au-syd": "Sydney",
 };
 
 var region = REGIONS[process.env.BLUEMIX_REGION];
+if (region === null) {region = 'sydney';}
 
 var GEOCODES = {
-    "dallas": "32.8,-96.8",
-    "london": "51.5,-0.1",
-    "sydney": "-33.9,151.2"
+    "Dallas": "32.8,-96.8",
+    "London": "51.5,-0.1",
+    "Sydney": "-33.9,151.2"
 };
 var geocode = GEOCODES[region];
 var callURL = weather_base_url + "api/weather/v2/observations/current" +
@@ -105,8 +110,8 @@ request.get(callURL, function (error, response, body) {
 
 var cards = [{region: "Dallas", time:"now"}, {region: "Sydney", time:"yesterday"}, {region: "London", time:"March 21, 2016"}, {region: "Dallas", time:"now"}];
 
-app.get('/', function(req,res){
-	//res.locals = {background-image: ''}
+app.get('/', function(req, res){
+	res.locals = {region: region};
 	res.render('template', {cards: cards});                                                  
 });
 
