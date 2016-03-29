@@ -37,15 +37,6 @@ function getCards(){
 	return test;
 }
 
-console.log(getCards());
-
-for (var i = 0; i < 10; i++) {
-	db.insert({region: "Dallas", time: "March 28, 2016"}, function(err, body) {
-	  if (!err)
-	    console.log(body);
-	});
-}
-
 // create a new express server
 var app = express();
 app.set('view engine', 'html');
@@ -90,8 +81,10 @@ app.get("/background-image.jpg", function(req, res, next){
 
 app.post('/', function(req, res) {
 	console.log("post");
-	//names.push({name: 'Preston'});
-	//res.render('template', {names: names});
+	db.insert({region: region, time: "March 28, 2016"}, function(err, body) {
+	  if (!err)
+	    console.log(body);
+	});
 });
 
 /*
