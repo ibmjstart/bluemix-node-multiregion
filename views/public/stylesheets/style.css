@@ -70,6 +70,7 @@ td {
 	text-align: center;
 	border-radius: 20px;
 	font-size: xx-large;
+	outline: none;
 }
 
 .create-div {

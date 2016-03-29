@@ -24,18 +24,24 @@ var cloudant_creds = appEnv.getServiceCreds("multi-region_cloudant");
 var Cloudant = require('cloudant');
 var cloudant_client = Cloudant({account:cloudant_creds.username, password:cloudant_creds.password});
 var db = cloudant_client.db.use('my_sample_db');
+  
+function getDoc(doc) {
+	var id = doc.id;
+	return new Promise(function(resolve, reject) {
+			db.get(id, function(err, body){
+        			resolve(body);
+        		});
+		});
+}                                                                                                  
 
-function getCards(){
-	var test = [];
-	db.list(function(err, body) {
-	  if (!err) {
-	    body.rows.forEach(function(doc) {
-	      db.get(doc.id, function(err, body){test.push(body);});
-	    });
-	  }
-	});
-	return test;
-}
+db.list(function(err, body) {
+	if (!err) {
+		var promises = body.rows.map(getDoc);
+        Promise.all(promises).then(function(cards){
+					console.log(cards);
+			});     
+	}               
+}); 
 
 // create a new express server
 var app = express();
@@ -51,7 +57,7 @@ var REGIONS = {
 };
 
 var region = REGIONS[process.env.BLUEMIX_REGION];
-if (region === null) {region = 'sydney';}
+if (region === null) {region = 'Sydney';}
 
 var GEOCODES = {
     "Dallas": "32.8,-96.8",
@@ -79,6 +85,14 @@ app.get("/background-image.jpg", function(req, res, next){
     });
 });
 
+
+var cards = [{region: "Dallas", time:"now"}, {region: "Sydney", time:"yesterday"}, {region: "London", time:"March 21, 2016"}, {region: "Dallas", time:"now"}];
+
+app.get('/', function(req, res){
+	res.locals = {region: region};
+	res.render('template', {cards: cards});                                                  
+});
+
 app.post('/', function(req, res) {
 	var date = new Date();                                                                             
 	db.insert({region: region, time: date.toUTCString()}, function(err, body) {
@@ -104,13 +118,6 @@ request.get(callURL, function (error, response, body) {
 
 });
  */
-
-var cards = [{region: "Dallas", time:"now"}, {region: "Sydney", time:"yesterday"}, {region: "London", time:"March 21, 2016"}, {region: "Dallas", time:"now"}];
-
-app.get('/', function(req, res){
-	res.locals = {region: region};
-	res.render('template', {cards: cards});                                                  
-});
 
 // serve the files out of ./public as our main files
 app.use(express.static(__dirname + '/views/public'));
