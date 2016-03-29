@@ -38,6 +38,7 @@ db.list(function(err, body) {
 	if (!err) {
 		var promises = body.rows.map(getDoc);
         Promise.all(promises).then(function(cards){
+        			console.log("CARDS FROM DB:");
 					console.log(cards);
 			});     
 	}               
@@ -117,7 +118,7 @@ request.get(callURL, function (error, response, body) {
    		}
 
 });
- */
+*/
 
 // serve the files out of ./public as our main files
 app.use(express.static(__dirname + '/views/public'));
