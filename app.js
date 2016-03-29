@@ -34,15 +34,20 @@ function getDoc(doc) {
 		});
 }                                                                                                  
 
-db.list(function(err, body) {
-	if (!err) {
-		var promises = body.rows.map(getDoc);
-        Promise.all(promises).then(function(cards){
-        			console.log("CARDS FROM DB:");
-					console.log(cards);
-			});     
-	}               
-}); 
+function getCards() {
+	return new Promise(function(resolve, reject) {
+		db.list(function(err, body) {
+			if (!err) {
+				var promises = body.rows.map(getDoc);
+		        Promise.all(promises).then(function(cards){
+		        			console.log("CARDS FROM DB:");
+							console.log(cards);
+							resolve(cards);
+					});     
+			}               
+		});
+	});
+}
 
 // create a new express server
 var app = express();
@@ -90,6 +95,8 @@ app.get("/background-image.jpg", function(req, res, next){
 var cards = [{region: "Dallas", time:"now"}, {region: "Sydney", time:"yesterday"}, {region: "London", time:"March 21, 2016"}, {region: "Dallas", time:"now"}];
 
 app.get('/', function(req, res){
+	var promise = getCards();
+	promise.then(function(cards){console.log(cards);});
 	res.locals = {region: region};
 	res.render('template', {cards: cards});                                                  
 });
