@@ -49,6 +49,23 @@ function getCards() {
 	});
 }
 
+function getBackgroundPath(callUrl, region) {
+	return new Promise(function(resolve, reject){
+		request.get(callURL, function (error, response, body) {
+		        body = JSON.parse(body);
+		        
+		        //day_ind is "D" for day, "N" for night
+		    	//defaults to day if not 'N'
+		        if (body.observation.day_ind === "N") {
+		            resolve("images/" + region + "-night.jpg");
+		        } else {
+		        	resolve("images/" + region + "-day.jpg");
+		   		}
+		
+		});
+	});
+}
+
 // create a new express server
 var app = express();
 app.set('view engine', 'html');
@@ -63,43 +80,28 @@ var REGIONS = {
 };
 
 var region = REGIONS[process.env.BLUEMIX_REGION];
-if (region === null) {region = 'Sydney';}
+if (region === null) {
+	region = 'Sydney';
+}
 
 var GEOCODES = {
     "Dallas": "32.8,-96.8",
     "London": "51.5,-0.1",
     "Sydney": "-33.9,151.2"
 };
+
 var geocode = GEOCODES[region];
 var callURL = weather_base_url + "api/weather/v2/observations/current" +
       "?geocode=" + geocode + "&language=en-US&units=m";
 
-      
-app.get("/background-image.jpg", function(req, res, next){
-    console.log("got a request");
-    request.get(callURL, function (error, response, body) {
-        if(error) return next(error);
-        
-        body = JSON.parse(body);
-
-        //day_ind is "D" for day, "N" for night
-        if (body.observation.day_ind === "D") {
-            res.sendFile(__dirname + "/views/public/images/" + region + "-day.jpg");
-        } else if (body.observation.day_ind === "N") {
-            res.sendFile(__dirname + "/views/public/images/" + region + "-night.jpg");
-        } else res.send("Neither day nor night!?");
-    });
-});
-
-
-// var cards = [{region: "Dallas", time:"now"}, {region: "Sydney", time:"yesterday"}, {region: "London", time:"March 21, 2016"}, {region: "Dallas", time:"now"}];
-
 app.get('/', function(req, res){
-	var promise = getCards();
-		promise.then(function(cards){
-				res.locals = {region: region};
-				res.render('template', {cards: cards});  
-			});
+	var background_prom = getBackgroundPath(callURL, region);
+	var cards_prom = getCards();
+	var promises = [background_prom, cards_prom];
+	Promise.all(promises).then(function(results) {
+						res.locals = {background: results[0], region: region};
+						res.render('template', {cards: results[1]});
+					});
 });
 
 app.post('/add', function(req, res) {
@@ -112,24 +114,6 @@ app.post('/add', function(req, res) {
 		res.redirect('back');
 	});
 });
-
-/*
-var background_image = '';
-request.get(callURL, function (error, response, body) {
-        //if(error) return next(error);
-        
-        body = JSON.parse(body);
-
-        //day_ind is "D" for day, "N" for night
-    	//defaults to day if not 'N'
-        if (body.observation.day_ind === "N") {
-            background_image = __dirname + "/views/public/images/" + region + "-night.jpg";
-        } else {
-        	background_image = __dirname + "/views/public/images/" + region + "-day.jpg";
-   		}
-
-});
-*/
 
 // serve the files out of ./public as our main files
 app.use(express.static(__dirname + '/views/public'));
