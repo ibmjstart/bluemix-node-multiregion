@@ -17,6 +17,8 @@ td {
 }
 
 .welcome-message {
+	padding-top: 25px;
+	margin-top: 0;
 	text-align: center;
 	font-size: 60px;
 }

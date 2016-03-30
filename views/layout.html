@@ -9,13 +9,14 @@
 	    <link rel="stylesheet" href="stylesheets/style.css">
   	</head>
   	
-	<body background={{background}}>
+	<body style="background-image:url({{background}})">
 		<div>
 			<h1 class="welcome-message">Welcome  to {{region}}!</h1>
 		</div>
 		<div class="container">
 	  		{{{yield}}}
 	  	</div>
+	  	<img src={{image}} />
 		<div class="create-div">
 	    	<form method="post" action="/add">
 	        	<button class="create-button" type="submit">+</button>

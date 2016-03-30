@@ -24,47 +24,6 @@ var cloudant_creds = appEnv.getServiceCreds("multi-region_cloudant");
 var Cloudant = require('cloudant');
 var cloudant_client = Cloudant({account:cloudant_creds.username, password:cloudant_creds.password});
 var db = cloudant_client.db.use('my_sample_db');
-  
-function getDoc(doc) {
-	var id = doc.id;
-	return new Promise(function(resolve, reject) {
-			db.get(id, function(err, body){
-        			resolve(body);
-        		});
-		});
-}                                                                                                  
-
-function getCards() {
-	return new Promise(function(resolve, reject) {
-		db.list(function(err, body) {
-			if (!err) {
-				var promises = body.rows.map(getDoc);
-		        Promise.all(promises).then(function(cards){
-		        			console.log("CARDS FROM DB:");
-							console.log(cards);
-							resolve(cards);
-					});     
-			}               
-		});
-	});
-}
-
-function getBackgroundPath(callUrl, region) {
-	return new Promise(function(resolve, reject){
-		request.get(callURL, function (error, response, body) {
-		        body = JSON.parse(body);
-		        
-		        //day_ind is "D" for day, "N" for night
-		    	//defaults to day if not 'N'
-		        if (body.observation.day_ind === "N") {
-		            resolve("images/" + region + "-night.jpg");
-		        } else {
-		        	resolve("images/" + region + "-day.jpg");
-		   		}
-		
-		});
-	});
-}
 
 // create a new express server
 var app = express();
@@ -94,12 +53,68 @@ var geocode = GEOCODES[region];
 var callURL = weather_base_url + "api/weather/v2/observations/current" +
       "?geocode=" + geocode + "&language=en-US&units=m";
 
+function getImage() {
+	//use https://www.npmjs.com/package/node-base64-image
+	return new Promise(function(resolve, reject) {
+			var base64 = require('node-base64-image');
+			var options = {string: true};
+ 
+			base64.base64encoder('http://lorempixel.com/100/120/', options, function (err, image) {
+			    if (err) {
+			        console.log(err);
+			    }
+			    resolve(image);
+			});
+		});
+}
+
+  
+function getDoc(doc) {
+	var id = doc.id;
+	return new Promise(function(resolve, reject) {
+			db.get(id, function(err, body){
+        			resolve(body);
+        		});
+		});
+}                                                                                                  
+
+function getCards() {
+	return new Promise(function(resolve, reject) {
+			db.list(function(err, body) {
+					if (!err) {
+						var promises = body.rows.map(getDoc);
+		       			Promise.all(promises).then(function(cards){
+									resolve(cards);
+								});     
+					}               
+				});
+		});
+}
+
+function getBackgroundPath() {
+	return new Promise(function(resolve, reject){
+		request.get(callURL, function (error, response, body) {
+		        body = JSON.parse(body);
+		        
+		        //day_ind is "D" for day, "N" for night
+		    	//defaults to day if not 'N'
+		        if (body.observation.day_ind === "N") {
+		            resolve("images/" + region + "-night.jpg");
+		        } else {
+		        	resolve("images/" + region + "-day.jpg");
+		   		}
+		
+		});
+	});
+}
+
 app.get('/', function(req, res){
-	var background_prom = getBackgroundPath(callURL, region);
+	var background_prom = getBackgroundPath();
 	var cards_prom = getCards();
-	var promises = [background_prom, cards_prom];
+	var image_prom = getImage();
+	var promises = [background_prom, cards_prom, image_prom];
 	Promise.all(promises).then(function(results) {
-						res.locals = {background: results[0], region: region};
+						res.locals = {background: results[0], region: region, image:"data:image/jpeg;base64," + results[2]};
 						res.render('template', {cards: results[1]});
 					});
 });
@@ -111,6 +126,8 @@ app.post('/add', function(req, res) {
 	  		console.log("Error on add");
 	  		console.log(err);
 	  	}
+	  	console.log(body.id);
+	  	request('http://lorempixel.com/100/120/').pipe(db.attachment.insert(body.id, 'random.jpeg', null, 'image/jpeg'));
 		res.redirect('back');
 	});
 });

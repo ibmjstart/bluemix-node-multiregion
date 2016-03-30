@@ -10,7 +10,8 @@
 		"cfenv": "1.0.x",
 		"request": "2.x",
 		"hogan-express": "0.5.x",
-		"cloudant": "1.4.x"
+		"cloudant": "1.4.x",
+		"node-base64-image": "0.1.x"
 	},
 	"repository": {},
 	"engines": {
