@@ -24,6 +24,7 @@ td {
 .container {
 	display: flex;
 	flex-flow: row wrap;
+	justify-content: flex-start;
     margin-bottom: 60px;
 }
   
@@ -32,9 +33,12 @@ td {
     color: #000000;
     border-radius: 7px;
     margin: 10px;
-    font-weight: bold;
     text-align: center;
     width: 275px;
+}
+
+.card p {
+	font-style: italic;
 }
 
 /*used http://thecodeplayer.com/walkthrough/css3-stamp*/

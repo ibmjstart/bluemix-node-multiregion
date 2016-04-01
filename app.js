@@ -69,6 +69,7 @@ function getCards() {
 					if (!err) {
 						var promises = body.rows.map(getDoc);
 		       			Promise.all(promises).then(function(cards){
+		       						cards.sort(compareCards);
 									resolve(cards);
 								});     
 					}               
@@ -128,12 +129,17 @@ function convertToRelativeTime(card) {
 	return card;
 }
 
+function compareCards(a, b) {
+	if (a.time < b.time) {return -1;}
+	else if (a.time > b.time) {return 1;}
+	return 0;
+}
+
 app.get('/', function(req, res){
 	var background_prom = getBackgroundPath();
 	var cards_prom = getCards();
 	var promises = [background_prom, cards_prom];
 	Promise.all(promises).then(function(results) {
-						console.log(results[1]);
 						res.locals = {background: results[0], 
 									  region: region, 
 									  account:cloudant_creds.username};
