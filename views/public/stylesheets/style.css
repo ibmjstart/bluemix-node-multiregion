@@ -3,9 +3,7 @@
  */
 
 body,html {
-	background-size: 100% 100%;
-    background-repeat: no-repeat;
-	background-color: #3b4b54; width : 100%;
+	width : 100%;
 	height: 100%;
 	margin: 0 auto;
 	font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
@@ -26,18 +24,17 @@ td {
 .container {
 	display: flex;
 	flex-flow: row wrap;
-    justify-content: space-around;
+    margin-bottom: 60px;
 }
   
 .card {
     background-color: #d3dcde;
     color: #000000;
-    width: 450px;
-    height: 155px;
     border-radius: 7px;
-    margin-top: 10px;
+    margin: 10px;
     font-weight: bold;
     text-align: center;
+    width: 275px;
 }
 
 /*used http://thecodeplayer.com/walkthrough/css3-stamp*/
@@ -60,17 +57,15 @@ td {
 }
 
 .stamp img {
-	width: 100px;
-	height: 120px;
+	width: 80px;
+	height: 97px;
 }  
 
 .create-button {                                                                                   
 	background-color: #ECF0F1;
-	height: 100px;
-	width: 100px;
 	text-align: center;
-	border-radius: 20px;
-	font-size: xx-large;
+	border-radius: 10px;
+	font-size: x-large;
 	outline: none;
 }
 
@@ -78,4 +73,18 @@ td {
 	position: fixed;
 	bottom: 10px;
 	left: 10px;
+}
+
+.delete-button {                                                                                   
+	background-color: #ECF0F1;
+	text-align: center;
+	border-radius: 10px;
+	font-size: x-large;
+	outline: none;
+}
+
+.delete-div {
+	position: fixed;
+	bottom: 10px;
+	right: 10px;
 }

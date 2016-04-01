@@ -4,6 +4,7 @@
 // node.js starter application for Bluemix
 //------------------------------------------------------------------------------
 
+var moment = require('moment');
 
 // This application uses express as its web server
 // for more info, see: http://expressjs.com
@@ -23,7 +24,7 @@ var cloudant_creds = appEnv.getServiceCreds("multi-region_cloudant");
 
 var Cloudant = require('cloudant');
 var cloudant_client = Cloudant({account:cloudant_creds.username, password:cloudant_creds.password});
-var db = cloudant_client.db.use('my_sample_db');
+var db = cloudant_client.db.use('postcards');
 
 // create a new express server
 var app = express();
@@ -39,7 +40,7 @@ var REGIONS = {
 };
 
 var region = REGIONS[process.env.BLUEMIX_REGION];
-if (region === null) {
+if (typeof region === "undefined") {
 	region = 'Sydney';
 }
 
@@ -52,22 +53,6 @@ var GEOCODES = {
 var geocode = GEOCODES[region];
 var callURL = weather_base_url + "api/weather/v2/observations/current" +
       "?geocode=" + geocode + "&language=en-US&units=m";
-
-function getImage() {
-	//use https://www.npmjs.com/package/node-base64-image
-	return new Promise(function(resolve, reject) {
-			var base64 = require('node-base64-image');
-			var options = {string: true};
- 
-			base64.base64encoder('http://lorempixel.com/100/120/', options, function (err, image) {
-			    if (err) {
-			        console.log(err);
-			    }
-			    resolve(image);
-			});
-		});
-}
-
   
 function getDoc(doc) {
 	var id = doc.id;
@@ -108,28 +93,72 @@ function getBackgroundPath() {
 	});
 }
 
+function deleteDoc(doc) {
+	var id = doc.id;
+	var rev = doc.value.rev;
+	return new Promise(function(resolve, reject) {
+			db.destroy(id, rev, function(err, body) {
+	  			if (!err) {
+	 			   resolve(body);
+	 			} else {
+	 			   console.log(err);
+	 			   
+	 			   //we still want to try to delete other cards so we will not reject
+	 			   resolve(err);
+	 			}
+			});
+		});
+}
+
+function deleteCards(){
+	return new Promise(function(resolve, reject) {
+			db.list(function(err, body) {
+					if (!err) {
+						var promises = body.rows.map(deleteDoc);
+		       			Promise.all(promises).then(function(responses){
+									resolve(responses);
+								});     
+					}               
+				});
+		});
+}
+
+function convertToRelativeTime(card) {
+	card.time = moment(card.time).fromNow();
+	return card;
+}
+
 app.get('/', function(req, res){
 	var background_prom = getBackgroundPath();
 	var cards_prom = getCards();
-	var image_prom = getImage();
-	var promises = [background_prom, cards_prom, image_prom];
+	var promises = [background_prom, cards_prom];
 	Promise.all(promises).then(function(results) {
-						res.locals = {background: results[0], region: region, image:"data:image/jpeg;base64," + results[2]};
-						res.render('template', {cards: results[1]});
+						console.log(results[1]);
+						res.locals = {background: results[0], 
+									  region: region, 
+									  account:cloudant_creds.username};
+						res.render('template', {cards: results[1].map(convertToRelativeTime)});
 					});
 });
 
 app.post('/add', function(req, res) {
 	var date = new Date();                                                                             
-	db.insert({region: region, time: date.toUTCString()}, function(err, body) {
+	db.insert({region: region, time: moment().valueOf()}, function(err, body) {
 		if (err) {
 	  		console.log("Error on add");
 	  		console.log(err);
 	  	}
 	  	console.log(body.id);
-	  	request('http://lorempixel.com/100/120/').pipe(db.attachment.insert(body.id, 'random.jpeg', null, 'image/jpeg'));
-		res.redirect('back');
+	  	request('http://lorempixel.com/80/97/').pipe(
+	  	db.attachment.insert(body.id, 'stamp.jpeg', null, 'image/jpeg', {rev: body.rev}, function(err, body) {
+  																							if (err) {console.log(err);}
+  																							res.redirect('back');
+  																						}));	
 	});
+});
+
+app.post('/delete', function(req, res) {
+	deleteCards().then(function(responses) {res.redirect('back');});
 });
 
 // serve the files out of ./public as our main files
@@ -144,4 +173,5 @@ app.listen(appEnv.port, '0.0.0.0', function() {
     console.log("geocode: " + geocode);
     console.log("weather_base_url: " + weather_base_url);
     console.log("callURL: " + callURL);
+    console.log(cloudant_creds);
 });

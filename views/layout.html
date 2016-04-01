@@ -8,18 +8,22 @@
 	    <meta name="viewport" content="width=device-width, initial-scale=1">
 	    <link rel="stylesheet" href="stylesheets/style.css">
   	</head>
-  	
-	<body style="background-image:url({{background}})">
+  	<!--used https://css-tricks.com/perfect-full-page-background-image/ for background styling-->
+	<body style="background: url({{background}}) no-repeat center center fixed; background-size: cover;">
 		<div>
-			<h1 class="welcome-message">Welcome  to {{region}}!</h1>
+			<h1 class="welcome-message">Welcome  to {{region}}</h1>
 		</div>
 		<div class="container">
 	  		{{{yield}}}
 	  	</div>
-	  	<img src={{image}} />
 		<div class="create-div">
 	    	<form method="post" action="/add">
-	        	<button class="create-button" type="submit">+</button>
+	        	<button class="create-button" type="submit">Create Card</button>
+	        </form>
+	   	</div>
+	   	<div class="delete-div">
+	    	<form method="post" action="/delete">
+	        	<button class="delete-button" type="submit">Delete All Cards</button>
 	        </form>
 	   	</div>
 	</body>
