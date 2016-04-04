@@ -1,0 +1,53 @@
+---
+stages:
+- name: Build Stage
+  inputs:
+  - type: git
+    branch: master
+  triggers:
+  - type: commit
+  jobs:
+  - name: Build
+    type: builder
+    artifact_dir: ''
+- name: Deploy Stage
+  inputs:
+  - type: job
+    stage: Build Stage
+    job: Build
+  triggers:
+  - type: stage
+  jobs:
+  - name: Sydney
+    type: deployer
+    target:
+      region_id: ibm:yp:au-syd
+      organization: lmsurpre@us.ibm.com
+      space: dev
+      application: multiregion
+    script: |-
+      #!/bin/bash
+      cf push "${CF_APP}"
+
+      # View logs
+      #cf logs "${CF_APP}" --recent
+  - name: London
+    type: deployer
+    target:
+      region_id: ibm:yp:eu-gb
+      organization: lmsurpre@us.ibm.com
+      space: dev
+      application: multiregion
+    script: |
+      #!/bin/bash
+      cf push "${CF_APP}"
+  - name: Dallas
+    type: deployer
+    target:
+      region_id: ibm:yp:us-south
+      organization: lmsurpre@us.ibm.com
+      space: dev
+      application: multiregion
+    script: |
+      #!/bin/bash
+      cf push "${CF_APP}"
