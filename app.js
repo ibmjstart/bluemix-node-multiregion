@@ -135,7 +135,55 @@ function compareCards(a, b) {
 	return 0;
 }
 
+function uploadDefaultStamp(body) {
+	/*
+		All default stamp images can be found at the Wikimedia Commons urls below:
+		
+		Dallas-stamp(https://commons.wikimedia.org/wiki/File:The_Margaret_Hunt_Hill_Bridge.02.jpg) 							- CC BY 2.0
+		London-stamp(https://commons.wikimedia.org/wiki/London#/media/File:Bigben.jpg) 										- CC BY-SA 3.0
+		Sydney-stamp(https://commons.wikimedia.org/wiki/Sydney_Opera_House#/media/File:Sydney_opera_house_side_view.jpg) 	- CC BY-SA 3.0
+		
+		The images use the following Creative Commons Licensing:
+		
+		CC BY 2.0 		- https://creativecommons.org/licenses/by/2.0/deed.en
+		CC BY-SA 3.0 	- https://creativecommons.org/licenses/by-sa/3.0/deed.en
+	 */
+	
+	var fs = require('fs');
+	var default_stamp = __dirname + '/views/public/images/' + region + '-stamp.jpg';
+	var id = body.id;
+	var rev = body.rev;
+	return new Promise(function(resolve, reject) {
+			fs.createReadStream(default_stamp).pipe(db.attachment.insert(id, 'stamp.jpeg', null, 'image/jpeg', {rev: rev}, 
+				function(err, response) {
+						if (err) {console.log(err);}
+						resolve(response);
+					}));
+			});
+}
+
 app.get('/', function(req, res){
+	/*
+		All background images can be found at the Wikimedia Commons urls below:
+		
+		Dallas-day(https://commons.wikimedia.org/wiki/Dallas,_Texas#/media/File:Dallas_Downtown.jpg) 					- CC BY-SA 2.0
+		Dallas-night(https://commons.wikimedia.org/wiki/File:Dallas_at_Night_from_South.jpg) 							- CC BY 3.0
+		Dallas-dusk(https://commons.wikimedia.org/wiki/File:Dallas_skyline.jpg) 										- CC BY-SA 2.0	
+		London-day(https://commons.wikimedia.org/wiki/London#/media/File:London_Skyline.jpg) 							- CC BY-SA 3.0
+		London-night(https://commons.wikimedia.org/wiki/London#/media/File:PalaceOfWestminsterAtNight.jpg) 				- CC BY-SA 2.0
+		London-dusk(https://commons.wikimedia.org/wiki/London#/media/File:London_Thames_Sunset_panorama_-_Feb_2008.jpg)	- CC BY 3.0
+		Sydney-day(https://commons.wikimedia.org/wiki/Sydney#/media/File:S%C3%ADdney-Australia30.JPG) 					- CC BY-SA 3.0
+		Sydney-night(https://commons.wikimedia.org/wiki/File:Sydney,_Australia.jpg)										- CC BY 2.0
+		Sydney-dusk(https://commons.wikimedia.org/wiki/Sydney#/media/File:Sydney_skyline_at_dusk_-_Dec_2008.jpg)		- CC BY-SA 3.0
+		
+		The images use the following Creative Commons Licensing:
+		
+		CC BY 2.0 		- https://creativecommons.org/licenses/by/2.0/deed.en
+		CC BY-SA 2.0 	- https://creativecommons.org/licenses/by-sa/2.0/deed.en
+		CC BY 3.0 		- https://creativecommons.org/licenses/by/3.0/deed.en
+		CC BY-SA 3.0 	- https://creativecommons.org/licenses/by-sa/3.0/deed.en
+	*/
+	
 	var background_prom = getBackgroundPath();
 	var cards_prom = getCards();
 	var promises = [background_prom, cards_prom];
@@ -148,19 +196,31 @@ app.get('/', function(req, res){
 });
 
 app.post('/add', function(req, res) {
-	var date = new Date();                                                                             
-	db.insert({region: region, time: moment().valueOf()}, function(err, body) {
-		if (err) {
-	  		console.log("Error on add");
-	  		console.log(err);
-	  	}
-	  	console.log(body.id);
-	  	request('http://lorempixel.com/80/100/').pipe(
-	  	db.attachment.insert(body.id, 'stamp.jpeg', null, 'image/jpeg', {rev: body.rev}, function(err, body) {
-  																							if (err) {console.log(err);}
-  																							res.redirect('back');
-  																						}));	
-	});
+	/*
+		Stamp images are randomly returned by lorempixel.com.
+		Images supplied by lorempixel.com are released under the Creative Commons License (CC BY-SA) http://creativecommons.org/licenses/
+		If for some reason an image can not be retrieved from lorempixel.com, a default image is provided via uploadDefaultStamp()		
+	*/
+	
+	//may want to add more error handling
+	db.insert({region: region, time: moment().valueOf()},
+		function(err, body) {
+			if (err) {
+		  		console.log("Error on add");
+		  		console.log(err);
+		  	} else {
+			  	request('http://lorempixel.com/80/100/', 
+			  		function(err, resp, bod) {
+			  			//added to handle pipe error when lorempixel is down
+			  			if (err) {uploadDefaultStamp(body).then(res.redirect('back'));}
+			  		})
+			  	.pipe(db.attachment.insert(body.id, 'stamp.jpeg', null, 'image/jpeg', {rev: body.rev}, 
+				  	function(err, response) {
+			  			if (err) {console.log(err);}
+			  			res.redirect('back');
+			  		}));
+	  		}
+  		});
 });
 
 app.post('/delete', function(req, res) {

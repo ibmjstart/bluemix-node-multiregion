@@ -58,7 +58,8 @@ body,html {
     left: 15px;
 }  
 
-.create-button {                                                                                   
+.create-button {
+	opacity: .9;
 	background-color: #ECF0F1;
 	text-align: center;
 	border-radius: 10px;
@@ -72,7 +73,8 @@ body,html {
 	left: 10px;
 }
 
-.delete-button {                                                                                   
+.delete-button {
+	opacity: .9;
 	background-color: #ECF0F1;
 	text-align: center;
 	border-radius: 10px;
