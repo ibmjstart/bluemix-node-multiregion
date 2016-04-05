@@ -19,8 +19,8 @@ var cfenv = require('cfenv');
 // get the app environment from Cloud Foundry
 var appEnv = cfenv.getAppEnv();
 
-var weather_base_url = appEnv.getServiceURL("multi-region_weatherinsights");
-var cloudant_creds = appEnv.getServiceCreds("multi-region_cloudant");
+var weather_base_url = appEnv.getServiceURL("multiregion_weatherinsights");
+var cloudant_creds = appEnv.getServiceCreds("multiregion_cloudant");
 
 var Cloudant = require('cloudant');
 var cloudant_client = Cloudant({account:cloudant_creds.username, password:cloudant_creds.password});
