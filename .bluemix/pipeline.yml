@@ -22,32 +22,38 @@ stages:
     type: deployer
     target:
       region_id: ibm:yp:au-syd
-      organization: lmsurpre@us.ibm.com
-      space: dev
-      application: multiregion
+      organization: ${CF_ORGANIZATION}
+      space: ${CF_SPACE}
+      application: ${CF_APP}
     script: |-
       #!/bin/bash
+      echo -e "Creating services if needed..."
+      cf create-service weatherinsights Free multiregion_weatherinsights
+      cf create-service cloudantNoSQLDB Shared multiregion_cloudant
       cf push "${CF_APP}"
-
-      # View logs
-      #cf logs "${CF_APP}" --recent
   - name: London
     type: deployer
     target:
       region_id: ibm:yp:eu-gb
-      organization: lmsurpre@us.ibm.com
-      space: dev
-      application: multiregion
-    script: |
+      organization: ${CF_ORGANIZATION}
+      space: ${CF_SPACE}
+      application: ${CF_APP}
+    script: |-
       #!/bin/bash
+      echo -e "Creating services if needed..."
+      cf create-service weatherinsights Free multiregion_weatherinsights
+      cf create-service cloudantNoSQLDB Shared multiregion_cloudant
       cf push "${CF_APP}"
   - name: Dallas
     type: deployer
     target:
       region_id: ibm:yp:us-south
-      organization: lmsurpre@us.ibm.com
-      space: dev
-      application: multiregion
-    script: |
+      organization: ${CF_ORGANIZATION}
+      space: ${CF_SPACE}
+      application: ${CF_APP}
+    script: |-
       #!/bin/bash
+      echo -e "Creating services if needed..."
+      cf create-service weatherinsights Free multiregion_weatherinsights
+      cf create-service cloudantNoSQLDB Shared multiregion_cloudant
       cf push "${CF_APP}"

@@ -2,10 +2,10 @@
 declared-services:
   multiregion_weatherinsights:
     label: weatherinsights
-    plan: free
+    plan: Free
   multiregion_cloudant:
     label: cloudantNoSQLDB
-    plan: shared
+    plan: Shared
     
 applications:
 - path: .
@@ -15,5 +15,5 @@ applications:
   host: multiregion
   disk_quota: 1024M
   services:
-    - multi-region_weatherinsights
-    - multi-region_cloudant
+    - multiregion_weatherinsights
+    - multiregion_cloudant
