@@ -155,7 +155,7 @@ app.post('/add', function(req, res) {
 	  		console.log(err);
 	  	}
 	  	console.log(body.id);
-	  	request('http://lorempixel.com/80/97/').pipe(
+	  	request('http://lorempixel.com/80/100/').pipe(
 	  	db.attachment.insert(body.id, 'stamp.jpeg', null, 'image/jpeg', {rev: body.rev}, function(err, body) {
   																							if (err) {console.log(err);}
   																							res.redirect('back');

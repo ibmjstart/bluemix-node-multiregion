@@ -10,10 +10,6 @@ body,html {
 	color: #ffffff;
 }
 
-td {
-    padding: 5px;
-}
-
 .welcome-message {
 	padding-top: 25px;
 	margin-top: 0;
@@ -29,6 +25,7 @@ td {
 }
   
 .card {
+	opacity: .9;
     background-color: #d3dcde;
     color: #000000;
     border-radius: 7px;
@@ -41,28 +38,24 @@ td {
 	font-style: italic;
 }
 
-/*used http://thecodeplayer.com/walkthrough/css3-stamp*/
 .stamp {
-	padding: 10px;
-	
-	/*The stamp cutout will be created using crisp radial gradients*/
-	background: radial-gradient(
-	transparent 0px, 
-	transparent 4px, 
-	white 4px,
-	white
-	);
-	
-	/*reducing the gradient size*/
-	background-size: 20px 20px;
-	
-	/*Offset to move the holes to the edge*/
-	background-position: -10px -10px;
+	position: relative;
+    left: 0;
+    top: 0;
+    padding: 5px;
 }
 
-.stamp img {
+.stamp-border {
+	width: 100px;
+	height: 120px;
+}
+
+.stamp-pic {
 	width: 80px;
-	height: 97px;
+	height: 100px;
+	position: absolute;
+    top: 15px;
+    left: 15px;
 }  
 
 .create-button {                                                                                   
