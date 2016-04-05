@@ -177,7 +177,4 @@ app.listen(appEnv.port, '0.0.0.0', function() {
     console.log("server starting on " + appEnv.url);
     console.log("region: " + region);
     console.log("geocode: " + geocode);
-    console.log("weather_base_url: " + weather_base_url);
-    console.log("callURL: " + callURL);
-    console.log(cloudant_creds);
 });
