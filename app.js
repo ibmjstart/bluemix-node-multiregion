@@ -128,7 +128,7 @@ function deleteDoc(doc) {
             if (!err) {
                 resolve(body);
             } else {
-                console.log(err);
+                console.error(err);
 
                 //we still want to try to delete other cards so we will not reject
                 resolve(err);
@@ -176,7 +176,7 @@ function uploadDefaultStamp(body) {
 
         function(err, response) {
             if (err) {
-                console.log(err);
+                console.error(err);
             }
             resolve(response);
         }));
@@ -208,8 +208,8 @@ app.post('/add', function(req, res) {
 
     function(err, body) {
         if (err) {
-            console.log("Error on add");
-            console.log(err);
+            console.error("Error on add");
+            console.error(err);
         } else {
             // retrieve and attach a random stamp image from lorempixel.com
             request('http://lorempixel.com/80/100/', function(err, resp, bod) {
@@ -219,11 +219,9 @@ app.post('/add', function(req, res) {
                 }
             }).pipe(db.attachment.insert(body.id, 'stamp.jpeg', null, 'image/jpeg', {
                 rev: body.rev
-            },
-
-            function(err, response) {
+            }, function(err, response) {
                 if (err) {
-                    console.log(err);
+                    console.error(err);
                 }
                 res.redirect('back');
             }));
