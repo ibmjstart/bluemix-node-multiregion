@@ -1,16 +1,7 @@
 /*eslint-env node*/
-
-//------------------------------------------------------------------------------
-// node.js starter application for Bluemix
-//------------------------------------------------------------------------------
-
-var moment = require('moment');
-
-// This application uses express as its web server
-// for more info, see: http://expressjs.com
 var express = require('express');
-
 var request = require('request');
+var moment = require('moment');
 
 // cfenv provides access to your Cloud Foundry environment
 // for more info, see: https://www.npmjs.com/package/cfenv
@@ -24,6 +15,7 @@ var cloudant_creds = appEnv.getServiceCreds("multiregion_cloudant");
 
 var Cloudant = require('cloudant');
 var cloudant_client = Cloudant({account:cloudant_creds.username, password:cloudant_creds.password});
+
 var db = cloudant_client.db.use('postcards');
 
 // create a new express server
@@ -32,6 +24,31 @@ app.set('view engine', 'html');
 app.set('layout', 'layout');
 app.enable('view cache');
 app.engine('html', require('hogan-express'));
+
+// create a new postcards database if needed
+cloudant_client.db.create('postcards', function(err) {
+    if(err && err.error !== 'file_exists') {
+        console.error(err);
+    }
+    
+    // grant universal read permissions for the database
+    var permissions = {
+        cloudant: {
+            nobody: ["_reader"]
+        }  
+    };
+    
+    cloudant_client.request({db: 'postcards', method: 'put', doc: '_security', body: permissions}, function(err){
+        if(err) {
+            console.error(err);
+        }
+        
+        // wait for the db, then start server on the specified port and binding host
+        app.listen(appEnv.port, function() {        
+            console.log("server starting on " + appEnv.url + " in region " + region);
+        });
+    });
+});
 
 var REGIONS = {
     "ibm:yp:us-south": "Dallas",
@@ -51,7 +68,7 @@ var GEOCODES = {
 };
 
 var geocode = GEOCODES[region];
-var callURL = weather_base_url + "api/weather/v2/observations/current" +
+var weather_observations_url = weather_base_url + "api/weather/v2/observations/current" +
       "?geocode=" + geocode + "&language=en-US&units=m";
   
 function getDoc(doc) {
@@ -79,17 +96,18 @@ function getCards() {
 
 function getBackgroundPath() {
 	return new Promise(function(resolve, reject){
-		request.get(callURL, function (error, response, body) {
-		        body = JSON.parse(body);
-		        
-		        //day_ind is "D" for day, "N" for night
-		    	//defaults to day if not 'N'
-		        if (body.observation.day_ind === "N") {
-		            resolve("images/" + region + "-night.jpg");
-		        } else {
-		        	resolve("images/" + region + "-day.jpg");
-		   		}
-		
+	    var requestObj = {
+	        uri: weather_observations_url, 
+	        json: true
+	    };
+		request.get(requestObj, function (err, response, body) {
+	        //day_ind is "D" for day, "N" for night
+	    	//default to day if not N (or in case of error)
+	        if (!err && body.observation.day_ind === "N") {
+	            resolve("images/" + region + "-night.jpg");
+	        } else {
+	        	resolve("images/" + region + "-day.jpg");
+	   		}
 		});
 	});
 }
@@ -136,19 +154,6 @@ function compareCards(a, b) {
 }
 
 function uploadDefaultStamp(body) {
-	/*
-		All default stamp images can be found at the Wikimedia Commons urls below:
-		
-		Dallas-stamp(https://commons.wikimedia.org/wiki/File:The_Margaret_Hunt_Hill_Bridge.02.jpg) 							- CC BY 2.0
-		London-stamp(https://commons.wikimedia.org/wiki/London#/media/File:Bigben.jpg) 										- CC BY-SA 3.0
-		Sydney-stamp(https://commons.wikimedia.org/wiki/Sydney_Opera_House#/media/File:Sydney_opera_house_side_view.jpg) 	- CC BY-SA 3.0
-		
-		The images use the following Creative Commons Licensing:
-		
-		CC BY 2.0 		- https://creativecommons.org/licenses/by/2.0/deed.en
-		CC BY-SA 3.0 	- https://creativecommons.org/licenses/by-sa/3.0/deed.en
-	 */
-	
 	var fs = require('fs');
 	var default_stamp = __dirname + '/views/public/images/' + region + '-stamp.jpg';
 	var id = body.id;
@@ -162,28 +167,7 @@ function uploadDefaultStamp(body) {
 			});
 }
 
-app.get('/', function(req, res){
-	/*
-		All background images can be found at the Wikimedia Commons urls below:
-		
-		Dallas-day(https://commons.wikimedia.org/wiki/Dallas,_Texas#/media/File:Dallas_Downtown.jpg) 					- CC BY-SA 2.0
-		Dallas-night(https://commons.wikimedia.org/wiki/File:Dallas_at_Night_from_South.jpg) 							- CC BY 3.0
-		Dallas-dusk(https://commons.wikimedia.org/wiki/File:Dallas_skyline.jpg) 										- CC BY-SA 2.0	
-		London-day(https://commons.wikimedia.org/wiki/London#/media/File:London_Skyline.jpg) 							- CC BY-SA 3.0
-		London-night(https://commons.wikimedia.org/wiki/London#/media/File:PalaceOfWestminsterAtNight.jpg) 				- CC BY-SA 2.0
-		London-dusk(https://commons.wikimedia.org/wiki/London#/media/File:London_Thames_Sunset_panorama_-_Feb_2008.jpg)	- CC BY 3.0
-		Sydney-day(https://commons.wikimedia.org/wiki/Sydney#/media/File:S%C3%ADdney-Australia30.JPG) 					- CC BY-SA 3.0
-		Sydney-night(https://commons.wikimedia.org/wiki/File:Sydney,_Australia.jpg)										- CC BY 2.0
-		Sydney-dusk(https://commons.wikimedia.org/wiki/Sydney#/media/File:Sydney_skyline_at_dusk_-_Dec_2008.jpg)		- CC BY-SA 3.0
-		
-		The images use the following Creative Commons Licensing:
-		
-		CC BY 2.0 		- https://creativecommons.org/licenses/by/2.0/deed.en
-		CC BY-SA 2.0 	- https://creativecommons.org/licenses/by-sa/2.0/deed.en
-		CC BY 3.0 		- https://creativecommons.org/licenses/by/3.0/deed.en
-		CC BY-SA 3.0 	- https://creativecommons.org/licenses/by-sa/3.0/deed.en
-	*/
-	
+app.get('/', function(req, res){	
 	var background_prom = getBackgroundPath();
 	var cards_prom = getCards();
 	var promises = [background_prom, cards_prom];
@@ -196,22 +180,17 @@ app.get('/', function(req, res){
 });
 
 app.post('/add', function(req, res) {
-	/*
-		Stamp images are randomly returned by lorempixel.com.
-		Images supplied by lorempixel.com are released under the Creative Commons License (CC BY-SA) http://creativecommons.org/licenses/
-		If for some reason an image can not be retrieved from lorempixel.com, a default image is provided via uploadDefaultStamp()		
-	*/
-	
-	//may want to add more error handling
+	//TODO add more error handling
 	db.insert({region: region, time: moment().valueOf()},
 		function(err, body) {
 			if (err) {
 		  		console.log("Error on add");
 		  		console.log(err);
 		  	} else {
+	            // retrieve and attach a random stamp image from lorempixel.com
 			  	request('http://lorempixel.com/80/100/', 
 			  		function(err, resp, bod) {
-			  			//added to handle pipe error when lorempixel is down
+			  			//if image could not be retrieved, attach a default image instead
 			  			if (err) {uploadDefaultStamp(body).then(res.redirect('back'));}
 			  		})
 			  	.pipe(db.attachment.insert(body.id, 'stamp.jpeg', null, 'image/jpeg', {rev: body.rev}, 
@@ -229,12 +208,3 @@ app.post('/delete', function(req, res) {
 
 // serve the files out of ./public as our main files
 app.use(express.static(__dirname + '/views/public'));
-
-// start server on the specified port and binding host
-app.listen(appEnv.port, '0.0.0.0', function() {
-
-	// print a message when the server starts listening
-    console.log("server starting on " + appEnv.url);
-    console.log("region: " + region);
-    console.log("geocode: " + geocode);
-});
