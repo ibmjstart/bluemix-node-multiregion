@@ -11,6 +11,28 @@ var cfenv = require('cfenv');
 var appEnv = cfenv.getAppEnv();
 
 var weather_base_url = appEnv.getServiceURL("multiregion_weatherinsights");
+
+var REGIONS = {
+    "ibm:yp:us-south": "Dallas",
+    "ibm:yp:eu-gb": "London",
+    "ibm:yp:au-syd": "Sydney",
+};
+
+var region = REGIONS[process.env.BLUEMIX_REGION];
+if (typeof region === "undefined") {
+    region = 'Sydney';
+}
+
+var GEOCODES = {
+    "Dallas": "32.8,-96.8",
+    "London": "51.5,-0.1",
+    "Sydney": "-33.9,151.2"
+};
+
+var geocode = GEOCODES[region];
+var weather_observations_url = weather_base_url + "api/weather/v2/observations/current" +
+    "?geocode=" + geocode + "&language=en-US&units=m";
+
 var cloudant_creds = appEnv.getServiceCreds("multiregion_cloudant");
 
 var Cloudant = require('cloudant');
@@ -57,27 +79,6 @@ cloudant_client.db.create('postcards', function(err) {
         });
     });
 });
-
-var REGIONS = {
-    "ibm:yp:us-south": "Dallas",
-    "ibm:yp:eu-gb": "London",
-    "ibm:yp:au-syd": "Sydney",
-};
-
-var region = REGIONS[process.env.BLUEMIX_REGION];
-if (typeof region === "undefined") {
-    region = 'Sydney';
-}
-
-var GEOCODES = {
-    "Dallas": "32.8,-96.8",
-    "London": "51.5,-0.1",
-    "Sydney": "-33.9,151.2"
-};
-
-var geocode = GEOCODES[region];
-var weather_observations_url = weather_base_url + "api/weather/v2/observations/current" +
-    "?geocode=" + geocode + "&language=en-US&units=m";
 
 function getDoc(doc) {
     var id = doc.id;
@@ -140,7 +141,9 @@ function deleteDoc(doc) {
 function deleteCards() {
     return new Promise(function(resolve, reject) {
         db.list(function(err, body) {
-            if (!err) {
+            if (err) {
+                reject(err);
+            } else {
                 var promises = body.rows.map(deleteDoc);
                 Promise.all(promises).then(function(responses) {
                     resolve(responses);
@@ -172,9 +175,7 @@ function uploadDefaultStamp(body) {
     return new Promise(function(resolve, reject) {
         fs.createReadStream(default_stamp).pipe(db.attachment.insert(id, 'stamp.jpeg', null, 'image/jpeg', {
             rev: rev
-        },
-
-        function(err, response) {
+        }, function(err, response) {
             if (err) {
                 console.error(err);
             }
@@ -200,37 +201,43 @@ app.get('/', function(req, res) {
 });
 
 app.post('/add', function(req, res) {
-    //TODO add more error handling
     db.insert({
         region: region,
         time: moment().valueOf()
-    },
-
-    function(err, body) {
+    }, function(err, body) {
         if (err) {
             console.error("Error on add");
             console.error(err);
         } else {
             // retrieve and attach a random stamp image from lorempixel.com
-            request('http://lorempixel.com/80/100/', function(err, resp, bod) {
-                //if image could not be retrieved, attach a default image instead
-                if (err) {
+            var r = request('http://lorempixel.com/80/100/');
+            r.on('error', function(err) {
+                console.log("Error retrieving a random image from lorempixel: " + err);
+                console.log("Using default image instead");
+                uploadDefaultStamp(body).then(res.redirect('back'));
+            });
+            r.on('response', function(imageResponse) {
+                if(imageResponse.statusCode === 200) {
+                    r.pipe(db.attachment.insert(body.id, 'stamp.jpeg', null, 'image/jpeg', {
+                        rev: body.rev
+                    }, function(err) {
+                        if (err) {
+                            console.error(err);
+                        }
+                        res.redirect('back');
+                    }));
+                } else {
+                    console.log("Error retrieving a random image from lorempixel: " + JSON.stringify(imageResponse));
+                    console.log("Using default image instead");
                     uploadDefaultStamp(body).then(res.redirect('back'));
                 }
-            }).pipe(db.attachment.insert(body.id, 'stamp.jpeg', null, 'image/jpeg', {
-                rev: body.rev
-            }, function(err, response) {
-                if (err) {
-                    console.error(err);
-                }
-                res.redirect('back');
-            }));
+            });
         }
     });
 });
 
 app.post('/delete', function(req, res) {
-    deleteCards().then(function(responses) {
+    deleteCards().then(function() {
         res.redirect('back');
     });
 });
