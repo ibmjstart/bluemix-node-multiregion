@@ -2,7 +2,7 @@
 <html>
 
   	<head>
-	    <title>multi-region Application</title>
+	    <title>Bluemix Postcards</title>
 	    <meta charset="utf-8">
 	    <meta http-equiv="X-UA-Compatible" content="IE=edge">
 	    <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -31,19 +31,19 @@
 	-->
 	<body style="background: url({{background}}) no-repeat center center fixed; background-size: cover;">
 		<div>
-			<h1 class="welcome-message">Welcome  to {{region}}</h1>
+			<h1 class="welcome-message">Welcome to {{region}}</h1>
 		</div>
 		<div class="container">
 	  		{{{yield}}}
 	  	</div>
 		<div class="create-div">
 	    	<form method="post" action="/add">
-	        	<button class="create-button" type="submit">Create Card</button>
+	        	<button class="create-button" type="submit">Leave a card</button>
 	        </form>
 	   	</div>
 	   	<div class="delete-div">
 	    	<form method="post" action="/delete">
-	        	<button class="delete-button" type="submit">Delete All Cards</button>
+	        	<button class="delete-button" type="submit">Clear all cards</button>
 	        </form>
 	   	</div>
 	</body>
