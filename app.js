@@ -112,7 +112,7 @@ function getBackgroundPath() {
         request.get(requestObj, function(err, response, body) {
             //day_ind is "D" for day, "N" for night
             //default to day if not N (or in case of error)
-            if (!err && body.observation.day_ind === "N") {
+            if (!err && response.statusCode === 200 && body.observation.day_ind === "N") {
                 resolve("images/" + region + "-night.jpg");
             } else {
                 resolve("images/" + region + "-day.jpg");
@@ -194,6 +194,7 @@ app.get('/', function(req, res) {
             region: region,
             account: cloudant_creds.username
         };
+        res.set('Cache-Control', 'private');
         res.render('template', {
             cards: results[1].map(convertToRelativeTime)
         });
@@ -242,5 +243,5 @@ app.post('/delete', function(req, res) {
     });
 });
 
-// serve the files out of ./public as our main files
-app.use(express.static(__dirname + '/views/public'));
+// serve the files out of ./public and tell caches to save it for a week
+app.use(express.static(__dirname + '/views/public', {maxAge: 7 * 24 * 60 * 60 * 1000}));
