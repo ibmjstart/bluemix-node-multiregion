@@ -76,6 +76,13 @@ var geocode = GEOCODES[region];
 var weather_observations_url = weather_base_url + "api/weather/v2/observations/current" +
     "?geocode=" + geocode + "&language=en-US&units=m";
 
+// D for day, N for night
+var day_ind = 'D';
+setDayIndicator();
+
+// poll the weather insights service every 10 minutes to update the day_ind
+setInterval(setDayIndicator, 10 * 60 * 1000); //every 10 minutes
+
 var cloudant_creds = appEnv.getServiceCreds("multiregion_cloudant");
 
 var Cloudant = require('cloudant');
@@ -146,22 +153,29 @@ function getCards() {
     });
 }
 
-function getBackgroundPath() {
-    return new Promise(function(resolve, reject) {
-        var requestObj = {
-            uri: weather_observations_url,
-            json: true
-        };
-        request.get(requestObj, function(err, response, body) {
-            //day_ind is "D" for day, "N" for night
-            //default to day if not N (or in case of error)
-            if (!err && response.statusCode === 200 && body.observation.day_ind === "N") {
-                resolve("images/" + region + "-night.jpg");
-            } else {
-                resolve("images/" + region + "-day.jpg");
-            }
-        });
+// side effect: updates the global day_ind var to 'D' for day, 'N' for night
+function setDayIndicator() {
+    var requestObj = {
+        uri: weather_observations_url,
+        json: true
+    };
+    request.get(requestObj, function(err, response, body) {
+        if(err) {
+            console.error(err);
+        } else if (response.statusCode !== 200) {
+            console.error("Response from weatherinsights: " + JSON.stringify(response));
+        } else {
+            day_ind = body.observation.day_ind;
+        }
     });
+}
+
+function getBackgroundPath() {
+    if (day_ind === "N") {
+        return "images/" + region + "-night.jpg";
+    } else {
+        return "images/" + region + "-day.jpg";
+    }
 }
 
 function deleteDoc(doc) {
@@ -228,18 +242,15 @@ function uploadDefaultStamp(body) {
 }
 
 app.get('/', function(req, res) {
-    var background_prom = getBackgroundPath();
-    var cards_prom = getCards();
-    var promises = [background_prom, cards_prom];
-    Promise.all(promises).then(function(results) {
+    getCards().then(function(results) {
         res.locals = {
-            background: results[0],
+            background: getBackgroundPath(),
             region: region,
             account: cloudant_creds.username
         };
         res.set('Cache-Control', 'private');
         res.render('template', {
-            cards: results[1].map(convertToRelativeTime)
+            cards: results.map(convertToRelativeTime)
         });
     });
 });
