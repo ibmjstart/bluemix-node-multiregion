@@ -103,6 +103,7 @@ app.engine('html', require('hogan-express'));
 // create a new postcards database if needed
 cloudant_client.db.create('postcards', function(err) {
     if (err && err.error !== 'file_exists') {
+        console.error("Error creating cloudant database");
         console.error(err);
     }
 
@@ -120,7 +121,8 @@ cloudant_client.db.create('postcards', function(err) {
         body: permissions
     }, function(err) {
         if (err) {
-            console.error(err);
+            console.error("Error setting cloudant permissions");
+            throw err;
         }
 
         // wait for the db, then start server on the specified port and binding host
@@ -142,7 +144,11 @@ function getDoc(doc) {
 function getCards() {
     return new Promise(function(resolve, reject) {
         db.list(function(err, body) {
-            if (!err) {
+            if (err) {
+                console.error("Error retrieving cards from cloudant");
+                console.error(err);
+                resolve([]);
+            } else {
                 var promises = body.rows.map(getDoc);
                 Promise.all(promises).then(function(cards) {
                     cards.sort(compareCards);
@@ -277,7 +283,9 @@ app.post('/add', function(req, res) {
                         rev: body.rev
                     }, function(err) {
                         if (err) {
+                            console.error("Error uploading stamp to cloudant");
                             console.error(err);
+                            uploadDefaultStamp(body).then(res.redirect('back'));
                         }
                         res.redirect('back');
                     }));
