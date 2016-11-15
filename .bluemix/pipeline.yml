@@ -29,7 +29,7 @@ stages:
       #!/bin/bash
       echo -e "Creating services if needed..."
       cf create-service weatherinsights Free multiregion_weatherinsights
-      cf create-service cloudantNoSQLDB Shared multiregion_cloudant
+      cf create-service cloudantNoSQLDB Lite multiregion_cloudant
       cf push "${CF_APP}"
   - name: London
     type: deployer
@@ -42,7 +42,7 @@ stages:
       #!/bin/bash
       echo -e "Creating services if needed..."
       cf create-service weatherinsights Free multiregion_weatherinsights
-      cf create-service cloudantNoSQLDB Shared multiregion_cloudant
+      cf create-service cloudantNoSQLDB Lite multiregion_cloudant
       cf push "${CF_APP}"
   - name: Dallas
     type: deployer
@@ -55,5 +55,5 @@ stages:
       #!/bin/bash
       echo -e "Creating services if needed..."
       cf create-service weatherinsights Free multiregion_weatherinsights
-      cf create-service cloudantNoSQLDB Shared multiregion_cloudant
+      cf create-service cloudantNoSQLDB Lite multiregion_cloudant
       cf push "${CF_APP}"

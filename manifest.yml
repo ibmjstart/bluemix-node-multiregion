@@ -5,8 +5,8 @@ declared-services:
     plan: Free
   multiregion_cloudant:
     label: cloudantNoSQLDB
-    plan: Shared
-    
+    plan: Lite
+
 applications:
 - path: .
   memory: 256M
